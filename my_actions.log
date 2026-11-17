@@ -1,0 +1,14 @@
+2026-11-17T13:00:00.000000Z	   10 Query	CREATE DATABASE sales_norm
+2026-11-17T13:00:01.000000Z	   10 Query	USE sales_norm
+2026-11-17T13:00:02.000000Z	   10 Query	CREATE TABLE sales_unnormalized_2 (report_id INT, report_date DATE, customer_id INT, customer_name VARCHAR(100), product_id INT, product_name VARCHAR(100), price DECIMAL(10,2), quantity INT)
+2026-11-17T13:00:03.000000Z	   10 Query	INSERT INTO sales_unnormalized_2 VALUES (1101, '2026-03-05', 12, 'Дания', 101, 'Дыни', 800, 1100), (1101, '2026-03-05', 12, 'Дания', 102, 'Клубника', 150, 300) ...
+2026-11-17T13:00:04.000000Z	   10 Query	CREATE TABLE customers (customer_id INT PRIMARY KEY, customer_name VARCHAR(100))
+2026-11-17T13:00:05.000000Z	   10 Query	CREATE TABLE products (product_id INT PRIMARY KEY, product_name VARCHAR(100), price DECIMAL(10,2))
+2026-11-17T13:00:06.000000Z	   10 Query	CREATE TABLE reports (report_id INT PRIMARY KEY, report_date DATE, customer_id INT)
+2026-11-17T13:00:07.000000Z	   10 Query	CREATE TABLE report_items (report_id INT, product_id INT, quantity INT)
+2026-11-17T13:00:08.000000Z	   10 Query	INSERT INTO customers SELECT DISTINCT customer_id, customer_name FROM sales_unnormalized_2
+2026-11-17T13:00:09.000000Z	   10 Query	INSERT INTO products SELECT DISTINCT product_id, product_name, price FROM sales_unnormalized_2
+2026-11-17T13:00:10.000000Z	   10 Query	INSERT INTO reports SELECT DISTINCT report_id, report_date, customer_id FROM sales_unnormalized_2
+2026-11-17T13:00:11.000000Z	   10 Query	INSERT INTO report_items SELECT report_id, product_id, quantity FROM sales_unnormalized_2
+2026-11-17T13:00:12.000000Z	   10 Query	SELECT SUM(price * quantity) AS total_before FROM sales_unnormalized_2
+2026-11-17T13:00:13.000000Z	   10 Query	SELECT c.customer_name, SUM(p.price * ri.quantity) AS total_spent FROM reports r JOIN customers c ON r.customer_id = c.customer_id JOIN report_items ri ON r.report_id = ri.report_id JOIN products p ON ri.product_id = p.product_id WHERE c.customer_id = 12 GROUP BY c.customer_name
